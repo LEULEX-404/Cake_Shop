@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy, PLATFORM_ID, Inject, HostListener } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -21,6 +21,7 @@ interface InvoiceItem {
   price: number;
   amount: number;
 }
+
 
 @Component({
   selector: 'app-products',
@@ -199,6 +200,8 @@ export class Products implements OnInit, OnDestroy {
       this.message = '';
     }, 3000);
   }
+  
+  invoiceNumber: string = '';
 
   async generateBill() {
     if (this.invoiceItems.length === 0) {
@@ -220,7 +223,9 @@ export class Products implements OnInit, OnDestroy {
 
       // Store total before clearing invoice
       const totalAmount = this.invoiceTotal;
-
+      
+      // FIX: Generate invoice number ONLY ONCE
+      this.invoiceNumber = this.generateInvoiceNumber();
       // Clear invoice
       this.invoiceItems = [];
       this.invoiceTotal = 0;
@@ -228,7 +233,7 @@ export class Products implements OnInit, OnDestroy {
       this.qty = 1;
       this.product = undefined;
 
-      this.message = `Bill generated successfully! Total: ${totalAmount} LKR`;
+      this.message = `Bill No: ${this.invoiceNumber} | Total: ${totalAmount} LKR`;
       this.messageType = 'success';
       this.cdr.detectChanges();
 
@@ -299,4 +304,88 @@ export class Products implements OnInit, OnDestroy {
       this.message = '';
     }, 2000);
   }
+
+  onBarcodeEnter() {
+    this.searchProduct();
+  
+    // Focus quantity input if product found
+    setTimeout(() => {
+      if (this.product) {
+        const qtyInput = document.getElementById('qty') as HTMLInputElement;
+        qtyInput?.focus();
+        qtyInput.select(); // auto-select current qty
+      }
+    }, 50);
+  }
+
+  onBarcodeTab(event: KeyboardEvent) {
+    if (event.key === 'Tab') {
+      // Only move if there are invoice items
+      if (this.invoiceItems.length > 0) {
+        event.preventDefault(); // prevent default tab behavior
+        const firstRow = document.querySelector(`[data-index="0"]`) as HTMLElement;
+        firstRow?.focus();
+      }
+    }
+  }
+  
+
+  onQtyEnter() {
+    this.addToInvoice();
+  
+    // Focus barcode input again for next product
+    setTimeout(() => {
+      const barcodeInput = document.getElementById('barcode') as HTMLInputElement;
+      barcodeInput?.focus();
+      barcodeInput.select();
+    }, 50);
+  }
+
+  onInvoiceRowKey(event: KeyboardEvent, index: number) {
+    switch(event.key) {
+      case 'Enter':
+        // Pressing Enter on any row generates the bill
+        this.generateBill();
+        // Focus barcode input after a short delay to ensure DOM updates
+        setTimeout(() => {
+          const barcodeInput = document.getElementById('barcode') as HTMLInputElement;
+          barcodeInput?.focus();
+          barcodeInput?.select(); // auto-select text for next scan
+        }, 50);
+        break;
+      case 'Delete':
+        // Delete the selected row
+        this.removeItem(index);
+        break;
+      case 'ArrowUp':
+        if (index > 0) {
+          const prevRow = document.querySelector(`[data-index="${index - 1}"]`) as HTMLElement;
+          prevRow?.focus();
+        }
+        break;
+      case 'ArrowDown':
+        if (index < this.invoiceItems.length - 1) {
+          const nextRow = document.querySelector(`[data-index="${index + 1}"]`) as HTMLElement;
+          nextRow?.focus();
+        }
+        break;
+    }
+  }
+  
+  
+  
+
+  @HostListener('window:keydown', ['$event'])
+  handleGlobalShortcuts(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'c') {
+      this.clearInvoice();
+      event.preventDefault();
+    } else if (event.ctrlKey && event.key === 'g') {
+      this.generateBill();
+      event.preventDefault();
+    }
+  }
+
+  
+  
 }

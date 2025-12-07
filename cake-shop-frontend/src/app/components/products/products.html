@@ -35,6 +35,9 @@
               type="text" 
               [(ngModel)]="barcode" 
               placeholder="Scan or enter barcode"
+              (keydown.enter)="onBarcodeEnter()"
+              (keydown.tab)="onBarcodeTab($any($event))"
+              autofocus
               class="form-input barcode-input"
             >
             <button (click)="searchProduct()" class="btn btn-primary">
@@ -69,6 +72,7 @@
                 type="number" 
                 [(ngModel)]="qty" 
                 min="1" 
+                (keydown.enter)="onQtyEnter()"
                 class="form-input qty-input"
               >
               <button (click)="addToInvoice()" class="btn btn-success">
@@ -115,7 +119,7 @@
             <span class="icon">🧾</span>
             Current Invoice
           </h2>
-          <span class="invoice-number">INV-{{ generateInvoiceNumber() }}</span>
+          <span class="invoice-number">INV-{{ invoiceNumber}}</span>
         </div>
 
         <div *ngIf="invoiceItems.length === 0" class="empty-invoice">
@@ -137,7 +141,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of invoiceItems; let i = index">
+                <tr *ngFor="let item of invoiceItems; let i = index"
+                [attr.data-index] = "i"
+                (keydown)="onInvoiceRowKey($event, i)" 
+                tabindex="0">
+
                   <td class="item-name">{{ item.name }}</td>
                   <td class="text-center">{{ item.qty }}</td>
                   <td class="text-right">{{ item.price }}</td>
