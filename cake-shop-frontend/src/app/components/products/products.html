@@ -1,40 +1,184 @@
-<div class="product-container">
-  <h2>Product Lookup & Invoice</h2>
+<div class="billing-wrapper">
+  <!-- Header Section -->
+  <header class="billing-header">
+    <div class="header-left">
+      <h1 class="company-name">Cake Shop</h1>
+      <p class="tagline">Sale System</p>
+    </div>
+    <div class="header-right">
+      <div class="datetime-display">
+        <span class="current-date" id="currentDate"></span>
+        <span class="current-time" id="currentTime"></span>
+      </div>
+      <div class="user-greeting">
+        <span class="greeting-icon">👤</span>
+        <span class="greeting-text">Hello, Cashier</span>
+      </div>
+    </div>
+  </header>
 
-  <label for="barcode">Enter Barcode:</label>
-  <input id="barcode" type="text" [(ngModel)]="barcode" placeholder="Enter barcode">
-  <button (click)="searchProduct()">Search</button>
+  <!-- Main Content -->
+  <div class="billing-content">
+    <!-- Left Panel - Product Search -->
+    <div class="left-panel">
+      <div class="card search-card">
+        <h2 class="card-title">
+          <span class="icon">🔍</span>
+          Product Lookup
+        </h2>
+        
+        <div class="form-group">
+          <label for="barcode" class="form-label">Barcode / SKU</label>
+          <div class="input-with-button">
+            <input 
+              id="barcode" 
+              type="text" 
+              [(ngModel)]="barcode" 
+              placeholder="Scan or enter barcode"
+              class="form-input barcode-input"
+            >
+            <button (click)="searchProduct()" class="btn btn-primary">
+              <span class="btn-icon">🔎</span>
+              Search
+            </button>
+          </div>
+        </div>
 
-  <div *ngIf="product" class="product-details">
-    <h3>{{ product.name }}</h3>
-    <p>Type: {{ product.type }}</p>
-    <p>Stock: {{ product.stockQty }}</p>
+        <div *ngIf="product" class="product-details">
+          <div class="product-header">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <span class="product-badge">{{ product.type }}</span>
+          </div>
+          
+          <div class="product-info">
+            <div class="info-item">
+              <span class="info-label">Stock Available:</span>
+              <span class="info-value stock-qty">{{ product.stockQty }} units</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Unit Price:</span>
+              <span class="info-value price">{{ product.price }} LKR</span>
+            </div>
+          </div>
 
-    <label for="qty">Quantity:</label>
-    <input id="qty" type="number" [(ngModel)]="qty" min="1">
-    <button (click)="addToInvoice()">Add to Invoice</button>
-  </div>
+          <div class="form-group">
+            <label for="qty" class="form-label">Quantity</label>
+            <div class="quantity-controls">
+              <input 
+                id="qty" 
+                type="number" 
+                [(ngModel)]="qty" 
+                min="1" 
+                class="form-input qty-input"
+              >
+              <button (click)="addToInvoice()" class="btn btn-success">
+                <span class="btn-icon">➕</span>
+                Add to Invoice
+              </button>
+            </div>
+          </div>
+        </div>
 
-  <p class="message">{{ message }}</p>
+        <p class="message" [class.error]="messageType === 'error'" [class.success]="messageType === 'success'">
+          {{ message }}
+        </p>
+      </div>
 
-  <div *ngIf="invoiceItems.length > 0" class="invoice">
-    <h3>Invoice</h3>
-    <table>
-      <tr>
-        <th>Name</th>
-        <th>Qty</th>
-        <th>Price</th>
-        <th>Amount</th>
-      </tr>
-      <tr *ngFor="let item of invoiceItems">
-        <td>{{ item.name }}</td>
-        <td>{{ item.qty }}</td>
-        <td>{{ item.price }}</td>
-        <td>{{ item.amount }}</td>
-      </tr>
-    </table>
-    <p class="total">Total: {{ invoiceTotal }} LKR</p>
-    <button (click)="generateBill()">Generate Bill & Reduce Stock</button>
-    <button (click)="clearInvoice()">Clear Invoice</button>
+      <!-- Quick Stats -->
+      <div class="card stats-card">
+        <h3 class="card-title">
+          <span class="icon">📊</span>
+          Session Summary
+        </h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-value">{{ invoiceItems.length }}</span>
+            <span class="stat-label">Items</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ calculateTotalQty() }}</span>
+            <span class="stat-label">Qty</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ invoiceTotal }}</span>
+            <span class="stat-label">LKR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Invoice -->
+    <div class="right-panel">
+      <div class="card invoice-card">
+        <div class="invoice-header">
+          <h2 class="card-title">
+            <span class="icon">🧾</span>
+            Current Invoice
+          </h2>
+          <span class="invoice-number">INV-{{ generateInvoiceNumber() }}</span>
+        </div>
+
+        <div *ngIf="invoiceItems.length === 0" class="empty-invoice">
+          <div class="empty-icon">🛒</div>
+          <p>No items added yet</p>
+          <small>Scan or search for products to begin</small>
+        </div>
+
+        <div *ngIf="invoiceItems.length > 0" class="invoice-content">
+          <div class="table-wrapper">
+            <table class="invoice-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th class="text-center">Qty</th>
+                  <th class="text-right">Price</th>
+                  <th class="text-right">Amount</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of invoiceItems; let i = index">
+                  <td class="item-name">{{ item.name }}</td>
+                  <td class="text-center">{{ item.qty }}</td>
+                  <td class="text-right">{{ item.price }}</td>
+                  <td class="text-right amount">{{ item.amount }}</td>
+                  <td class="text-center">
+                    <button (click)="removeItem(i)" class="btn-remove" title="Remove item">
+                      ❌
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="invoice-summary">
+            <div class="summary-row">
+              <span>Subtotal:</span>
+              <span class="summary-value">{{ invoiceTotal }} LKR</span>
+            </div>
+            <div class="summary-row">
+              <span>Tax (0%):</span>
+              <span class="summary-value">0.00 LKR</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Total Amount:</span>
+              <span class="total-value">{{ invoiceTotal }} LKR</span>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button (click)="generateBill()" class="btn btn-large btn-primary">
+              <span class="btn-icon">💳</span>
+              Complete Sale
+            </button>
+            <button (click)="clearInvoice()" class="btn btn-large btn-secondary">
+              <span class="btn-icon">🗑️</span>
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
