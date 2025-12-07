@@ -5,39 +5,39 @@ using CakeShopApi.Models;
 namespace CakeShopApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class ProductController : ControllerBase
+[Route("api/[controller]")]
+public class ProductController : ControllerBase
+{
+    private readonly ProductService _service;
+    public ProductController(ProductService service)
     {
-        private readonly ProductService _service;
-        public ProductController(ProductService service)
-        {
-            _service = service;
-        }
-
-        [HttpGet]
-        public IActionResult GetAll() => Ok(_service.GetAll());
-
-        [HttpGet("barcode/{code}")]
-        public IActionResult GetByBarcode(string code)
-        {
-            var product = _service.GetByBarcode(code);
-            if (product == null) return NotFound("Product not found");
-            return Ok(product);
-        }
-
-        [HttpPost("reduce")]
-        public IActionResult ReduceStock([FromBody] ReduceStockRequest request)
-        {
-            try
-            {
-                _service.ReduceStock(request.Barcode, request.Qty);
-                return Ok("Stock reduced");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
+        _service = service;
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
+
+    [HttpGet("barcode/{code}")]
+    public async Task<IActionResult> GetByBarcode(string code)
+    {
+        var product = await _service.GetByBarcodeAsync(code);
+        if (product == null) return NotFound("Product not found");
+        return Ok(product);
+    }
+
+    [HttpPost("reduce")]
+    public async Task<IActionResult> ReduceStock([FromBody] ReduceStockRequest request)
+    {
+        try
+        {
+            await _service.ReduceStockAsync(request.Barcode, request.Qty);
+            return Ok("Stock reduced");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+}
+
 }

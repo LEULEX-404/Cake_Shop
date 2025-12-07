@@ -1,22 +1,45 @@
-using CakeShopApi.Models;
+using CakeShopApi.Data;
 using CakeShopApi.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
-builder.Services.AddSingleton<ProductService>();
+// Add controllers
 builder.Services.AddControllers();
-builder.Services.AddCors();
 
+// Configure EF Core with MySQL
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 42)), // Set your MySQL version here
+        mySqlOptions => mySqlOptions.EnableRetryOnFailure() // Helps with transient connection issues
+    )
+);
+
+// Register ProductService as scoped (so it uses DbContext properly)
+builder.Services.AddScoped<ProductService>();
+
+// Enable CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+    );
+});
+
+// Build the app
 var app = builder.Build();
 
-// CORS
-app.UseCors(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+// Use CORS
+app.UseCors();
 
 // Map controllers
 app.MapControllers();
 
-// Comment out HTTPS redirection to avoid dev warning
+// Optional: disable HTTPS redirection for dev
 // app.UseHttpsRedirection();
 
+// Run the app
 app.Run();
