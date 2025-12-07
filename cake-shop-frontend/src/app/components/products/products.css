@@ -1,0 +1,154 @@
+.product-container {
+  max-width: 600px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+.product-container h2 {
+  text-align: center;
+}
+
+.product-details, .invoice {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+input[type="text"], input[type="number"] {
+  padding: 6px;
+  margin-right: 10px;
+  width: 200px;
+}
+
+button {
+  padding: 6px 12px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+.total {
+  font-weight: bold;
+  text-align: right;
+  margin-top: 5px;
+}
+.total span {
+  margin-left: 10px;
+}
+.invoice h3 {
+  text-align: center;
+}
+.invoice-details {
+  margin-top: 10px;
+}
+.invoice-details p {
+  margin: 4px 0;
+}
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.invoice-table th, .invoice-table td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+.invoice-total {
+  font-weight: bold;
+  text-align: right;
+  margin-top: 10px;
+}
+.invoice-total span {
+  margin-left: 10px;
+}
+.product-list {
+  margin-top: 20px;
+}
+.product-list h3 {
+  text-align: center;
+}
+.product-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+.product-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+.product-list li:last-child {
+  border-bottom: none;
+}
+.product-list li span {
+  float: right;
+  font-weight: bold;
+}
+.product-list li::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.loading {
+  text-align: center;
+  font-style: italic;
+  margin-top: 20px;
+}
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 20px;
+}
+.success {
+  color: green;
+  text-align: center;
+  margin-top: 20px;
+}
+.warning {
+  color: orange;
+  text-align: center;
+  margin-top: 20px;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  width: 400px;
+  text-align: center;
+}
+.modal-content h3 {
+  margin-bottom: 10px;
+}
+.modal-content button {
+  margin-top: 15px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.product-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin-top: 10px;
+}

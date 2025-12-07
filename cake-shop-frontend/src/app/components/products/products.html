@@ -1,0 +1,40 @@
+<div class="product-container">
+  <h2>Product Lookup & Invoice</h2>
+
+  <label for="barcode">Enter Barcode:</label>
+  <input id="barcode" type="text" [(ngModel)]="barcode" placeholder="Enter barcode">
+  <button (click)="searchProduct()">Search</button>
+
+  <div *ngIf="product" class="product-details">
+    <h3>{{ product.name }}</h3>
+    <p>Type: {{ product.type }}</p>
+    <p>Stock: {{ product.stockQty }}</p>
+
+    <label for="qty">Quantity:</label>
+    <input id="qty" type="number" [(ngModel)]="qty" min="1">
+    <button (click)="addToInvoice()">Add to Invoice</button>
+  </div>
+
+  <p class="message">{{ message }}</p>
+
+  <div *ngIf="invoiceItems.length > 0" class="invoice">
+    <h3>Invoice</h3>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Amount</th>
+      </tr>
+      <tr *ngFor="let item of invoiceItems">
+        <td>{{ item.name }}</td>
+        <td>{{ item.qty }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.amount }}</td>
+      </tr>
+    </table>
+    <p class="total">Total: {{ invoiceTotal }} LKR</p>
+    <button (click)="generateBill()">Generate Bill & Reduce Stock</button>
+    <button (click)="clearInvoice()">Clear Invoice</button>
+  </div>
+</div>
