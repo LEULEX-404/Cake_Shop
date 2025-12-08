@@ -108,7 +108,6 @@ body {
   transform: scale(0.96);
 }
 
-
 /* Main Content Layout */
 .billing-content {
   display: grid;
@@ -364,7 +363,7 @@ body {
   background: rgba(255, 255, 255, 0.15);
   padding: 15px;
   border-radius: 10px;
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .stat-value {
@@ -529,6 +528,142 @@ body {
 .action-buttons {
   display: flex;
   gap: 15px;
+}
+
+/* ============================
+   PAYMENT MODAL BACKDROP
+=============================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  backdrop-filter: blur(2px);
+}
+
+/* ============================
+   PAYMENT MODAL CONTAINER
+=============================== */
+.payment-modal {
+  width: 380px;
+  max-width: 95%;
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+  animation: fadeInScale 0.25s ease-out;
+}
+
+@keyframes fadeInScale {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.payment-modal h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
+
+/* ============================
+   MODAL ROW
+=============================== */
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.modal-row label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.modal-row .value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #000;
+}
+
+/* ============================
+   INPUTS INSIDE MODAL
+=============================== */
+.payment-modal .form-input,
+.payment-modal select {
+  width: 150px;
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.payment-modal .form-input:focus,
+.payment-modal select:focus {
+  border-color: #3b82f6;
+}
+
+/* ============================
+   ERROR MESSAGE
+=============================== */
+.modal-message {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.modal-message.error {
+  color: #b00020;
+}
+
+/* ============================
+   MODAL ACTION BUTTONS
+=============================== */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.modal-actions .btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.modal-actions .btn-primary {
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.modal-actions .btn-primary:hover {
+  background: #2563eb;
+}
+
+.modal-actions .btn-secondary {
+  background: #e5e7eb;
+  color: #333;
+  font-weight: 500;
+}
+
+.modal-actions .btn-secondary:hover {
+  background: #d1d5db;
+}
+
+.modal-actions .btn:active {
+  transform: scale(0.97);
 }
 
 /* Responsive Design */

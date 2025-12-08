@@ -1,5 +1,5 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy, PLATFORM_ID, Inject, HostListener } from '@angular/core';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
@@ -23,11 +23,10 @@ interface InvoiceItem {
   amount: number;
 }
 
-
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [FormsModule, HttpClientModule, CommonModule, RouterLink],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './products.html',
   styleUrls: ['./products.css']
 })
@@ -36,21 +35,26 @@ export class Products implements OnInit, OnDestroy {
   qty: number = 1;
   product?: Product;
   message: string = '';
-  messageType: string = ''; // 'success' or 'error'
+  messageType: string = '';
   isProcessing: boolean = false;
 
   productList: Product[] = [];
   invoiceItems: InvoiceItem[] = [];
   invoiceTotal: number = 0;
 
-  // New properties for date/time
   currentDate: string = '';
   currentTime: string = '';
   private timeInterval: any;
   private isBrowser: boolean;
 
+  invoiceNumber: string = '';
+  showPaymentModal: boolean = false;
+  paymentType: 'cash' | 'card' | 'mixed' = 'cash';
+  paidAmount: number | null = null;
+  paymentError: string = '';
+
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
@@ -59,61 +63,21 @@ export class Products implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Only run in browser environment
     if (this.isBrowser) {
-      // Initialize date and time
       this.updateDateTime();
-      
-      // Update time every second
-      this.timeInterval = setInterval(() => {
-        this.updateDateTime();
-      }, 1000);
+      this.timeInterval = setInterval(() => this.updateDateTime(), 1000);
     }
   }
 
   ngOnDestroy(): void {
-    // Clear interval when component is destroyed
-    if (this.timeInterval) {
-      clearInterval(this.timeInterval);
-    }
+    if (this.timeInterval) clearInterval(this.timeInterval);
   }
 
-  // Update current date and time
   updateDateTime(): void {
     if (!this.isBrowser) return;
-    
     const now = new Date();
-    
-    // Format date: "Monday, Dec 7, 2025"
-    const dateOptions: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    };
-    this.currentDate = now.toLocaleDateString('en-US', dateOptions);
-    
-    // Format time: "02:30:45 PM"
-    const timeOptions: Intl.DateTimeFormatOptions = { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit',
-      hour12: true 
-    };
-    this.currentTime = now.toLocaleTimeString('en-US', timeOptions);
-    
-    // Update DOM elements if they exist
-    if (typeof document !== 'undefined') {
-      const dateElement = document.getElementById('currentDate');
-      const timeElement = document.getElementById('currentTime');
-      
-      if (dateElement) {
-        dateElement.textContent = this.currentDate;
-      }
-      if (timeElement) {
-        timeElement.textContent = this.currentTime;
-      }
-    }
+    this.currentDate = now.toLocaleDateString();
+    this.currentTime = now.toLocaleTimeString();
   }
 
   loadAllProducts() {
@@ -126,267 +90,97 @@ export class Products implements OnInit, OnDestroy {
 
   searchProduct() {
     if (!this.barcode.trim() || this.isProcessing) return;
-
-    // Clear previous search immediately
     this.product = undefined;
     this.message = '';
-
     this.http.get<Product>(`http://localhost:5277/api/product/barcode/${this.barcode}`)
       .subscribe({
-        next: data => {
-          this.product = data;
-          this.message = 'Product found successfully!';
-          this.messageType = 'success';
-          this.cdr.detectChanges(); // Force view update
-        },
-        error: err => {
-          this.product = undefined;
-          this.message = 'Product not found';
-          this.messageType = 'error';
-          this.cdr.detectChanges(); // Force view update
-        }
+        next: data => { this.product = data; this.message='Product found'; this.messageType='success'; this.cdr.detectChanges(); },
+        error: err => { this.product=undefined; this.message='Product not found'; this.messageType='error'; this.cdr.detectChanges(); }
       });
   }
 
   addToInvoice() {
-    if (!this.product) {
-      this.message = 'No product selected';
-      this.messageType = 'error';
-      return;
-    }
+    if (!this.product) { this.message='No product selected'; this.messageType='error'; return; }
+    if (this.qty <=0 || this.qty>this.product.stockQty) { this.message='Invalid quantity'; this.messageType='error'; return; }
 
-    if (this.qty <= 0) {
-      this.message = 'Quantity must be greater than 0';
-      this.messageType = 'error';
-      return;
-    }
-
-    if (this.qty > this.product.stockQty) {
-      this.message = 'Insufficient stock available';
-      this.messageType = 'error';
-      return;
-    }
-
-    const price = this.product.type === 'fixed' ? this.product.price! : this.product.pricePerKg!;
-
-    const existingItem = this.invoiceItems.find(item => item.barcode === this.product!.barcode);
-    let item: InvoiceItem;
-    if (existingItem) {
-      existingItem.qty += this.qty;
-      existingItem.amount = existingItem.qty * existingItem.price;
-      item = existingItem;
-    } else {
-      item = {
-        name: this.product!.name,
-        barcode: this.product!.barcode,
-        qty: this.qty,
-        price: price,
-        amount: this.qty * price
-      };
-      this.invoiceItems.push(item);
-    }
+    const price = this.product.type==='fixed'?this.product.price!:this.product.pricePerKg!;
+    const existing = this.invoiceItems.find(i=>i.barcode===this.product!.barcode);
+    if (existing) { existing.qty+=this.qty; existing.amount=existing.qty*existing.price; }
+    else this.invoiceItems.push({ name:this.product!.name, barcode:this.product!.barcode, qty:this.qty, price, amount:this.qty*price });
 
     this.calculateInvoiceTotal();
-
-    // Reset input
-    this.qty = 1;
-    this.barcode = '';
-    this.product = undefined;
-
-    this.message = `${item.name} added to invoice`;
-    this.messageType = 'success';
-
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      this.message = '';
-    }, 3000);
+    this.qty=1; this.barcode=''; this.product=undefined;
   }
-  
-  invoiceNumber: string = '';
 
-  async generateBill() {
-    if (this.invoiceItems.length === 0) {
-      this.message = 'No items in invoice';
-      this.messageType = 'error';
-      return;
-    }
+  openPaymentModal() {
+    if(this.invoiceItems.length===0){ this.message='No items'; this.messageType='error'; return; }
+    this.paymentType='cash'; this.paidAmount=null; this.paymentError=''; this.showPaymentModal=true;
+  }
 
-    this.isProcessing = true;
+  closePaymentModal() { this.showPaymentModal=false; this.paymentError=''; this.paidAmount=null; }
 
-    try {
-      for (const item of this.invoiceItems) {
-        // Reduce stock via API, using text response to avoid JSON parse error
-        await firstValueFrom(this.http.post('http://localhost:5277/api/product/reduce',
-          { barcode: item.barcode, qty: item.qty },
-          { responseType: 'text' } 
-        ));
-      }
+  computeChange(): number { const paid=this.paidAmount??0; return Math.max(0, Math.round((paid-this.invoiceTotal)*100)/100); }
 
-      // Store total before clearing invoice
-      const totalAmount = this.invoiceTotal;
-      
-      // FIX: Generate invoice number ONLY ONCE
-      this.invoiceNumber = this.generateInvoiceNumber();
-      // Clear invoice
-      this.invoiceItems = [];
-      this.invoiceTotal = 0;
-      this.barcode = '';
-      this.qty = 1;
-      this.product = undefined;
+  async confirmPayment() {
+    this.paymentError='';
+    if(this.paidAmount===null||isNaN(this.paidAmount)) { this.paymentError='Enter valid paid amount'; return; }
+    if(this.paidAmount<this.invoiceTotal) { this.paymentError='Paid amount insufficient'; return; }
+    this.isProcessing=true;
+    try{
+      for(const item of this.invoiceItems)
+        await firstValueFrom(this.http.post('http://localhost:5277/api/product/reduce',{barcode:item.barcode,qty:item.qty},{responseType:'text'}));
 
-      this.message = `Bill No: ${this.invoiceNumber} | Total: ${totalAmount} LKR`;
-      this.messageType = 'success';
+      this.invoiceNumber=this.generateInvoiceNumber();
+      const totalAmount=this.invoiceTotal;
+      const paid=this.paidAmount??totalAmount;
+      const change=Math.round((paid-totalAmount)*100)/100;
+      const invoiceData={ number:this.invoiceNumber, date:new Date().toLocaleString(), items:[...this.invoiceItems], total:totalAmount, paid, change, paymentType:this.paymentType };
+
+      this.invoiceItems=[]; this.invoiceTotal=0; this.barcode=''; this.qty=1; this.product=undefined;
+      this.showPaymentModal=false;
+      this.message=`Bill No: ${this.invoiceNumber} | Total: ${totalAmount} LKR | Change: ${change} LKR`; this.messageType='success';
       this.cdr.detectChanges();
-
-      // Clear message after 3 seconds
-      setTimeout(() => {
-        this.message = '';
-      }, 3000);
-
-    } catch (err: any) {
-      console.error(err);
-      this.message = 'Error reducing stock';
-      this.messageType = 'error';
-      this.cdr.detectChanges();
-    } finally {
-      this.isProcessing = false;
-    }
+      setTimeout(()=>{ this.message=''; },4000);
+      this.printReceipt(invoiceData);
+    }catch(err){ console.error(err); this.paymentError='Payment error'; this.message='Payment error'; this.messageType='error'; this.cdr.detectChanges(); }
+    finally{ this.isProcessing=false; }
   }
 
-  // Calculate total quantity of all items
-  calculateTotalQty(): number {
-    return this.invoiceItems.reduce((total, item) => total + item.qty, 0);
+  printReceipt(invoiceData:any){
+    const header=`<div style="text-align:center;font-family:monospace;"><h2>Cake Shop</h2><div>${invoiceData.date}</div><hr/></div>`;
+    let itemsHtml='<table style="width:100%; font-family:monospace;"><tbody>';
+    invoiceData.items.forEach((it:any)=>itemsHtml+=`<tr><td>${it.name}</td><td>${it.qty}x${it.price}</td><td style="text-align:right">${it.amount.toFixed(2)}</td></tr>`);
+    itemsHtml+='</tbody></table>';
+    const totals=`<hr/><div>Total:${invoiceData.total.toFixed(2)} Paid:${invoiceData.paid.toFixed(2)} Change:${invoiceData.change.toFixed(2)}</div><hr/>`;
+    const printHtml=`<html><head><title>Receipt</title></head><body>${header}${itemsHtml}${totals}</body></html>`;
+    const w=window.open('','_blank','width=350,height=600'); if(!w){alert('Allow popups'); return;}
+    w.document.write(printHtml); w.document.close(); w.focus(); setTimeout(()=>w.print(),500);
   }
 
-  // Calculate invoice total (renamed from your original)
-  calculateInvoiceTotal() {
-    this.invoiceTotal = this.invoiceItems.reduce((sum, item) => sum + item.amount, 0);
+  calculateTotalQty(): number { return this.invoiceItems.reduce((sum,i)=>sum+i.qty,0); }
+  calculateInvoiceTotal() { this.invoiceTotal=this.invoiceItems.reduce((sum,i)=>sum+i.amount,0); }
+  generateInvoiceNumber(): string { const d=new Date(); return `${d.getFullYear()}${d.getMonth()+1}${d.getDate()}-${Math.floor(Math.random()*10000)}`; }
+
+  removeItem(index:number){ if(index>=0&&index<this.invoiceItems.length){ this.invoiceItems.splice(index,1); this.calculateInvoiceTotal(); } }
+  clearInvoice(){ this.invoiceItems=[]; this.invoiceTotal=0; this.barcode=''; this.qty=1; this.product=undefined; }
+
+  onBarcodeEnter(){ this.searchProduct(); setTimeout(()=>{ document.getElementById('qty')?.focus(); },50); }
+  onBarcodeTab(e:KeyboardEvent){ 
+    if(e.key==='Tab'){ 
+      e.preventDefault(); 
+      (document.querySelector(`[data-index="0"]`) as HTMLElement)?.focus(); 
+    } 
+  }
+  onQtyEnter(){ this.addToInvoice(); setTimeout(()=>{ document.getElementById('barcode')?.focus(); },50); }
+  onInvoiceRowKey(e:KeyboardEvent,index:number){ if(e.key==='Enter'){ this.openPaymentModal(); setTimeout(()=>{ document.getElementById('barcode')?.focus(); },50); }
+    else if(e.key==='Delete'){ this.removeItem(index); }
+    else if(e.key==='ArrowUp'&&index>0){ (document.querySelector(`[data-index="${index-1}"]`) as HTMLElement)?.focus(); }
+    else if(e.key==='ArrowDown'&&index<this.invoiceItems.length-1){ (document.querySelector(`[data-index="${index+1}"]`) as HTMLElement)?.focus(); }
   }
 
-  // Generate unique invoice number
-  generateInvoiceNumber(): string {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    
-    return `${year}${month}${day}-${random}`;
+  @HostListener('window:keydown',['$event'])
+  handleGlobalShortcuts(e:KeyboardEvent){
+    if(e.ctrlKey&&e.key==='c'){ this.clearInvoice(); e.preventDefault(); }
+    else if(e.ctrlKey&&e.key==='g'){ this.openPaymentModal(); e.preventDefault(); }
   }
-
-  // Remove item from invoice
-  removeItem(index: number): void {
-    if (index >= 0 && index < this.invoiceItems.length) {
-      const removedItem = this.invoiceItems[index];
-      this.invoiceItems.splice(index, 1);
-      this.calculateInvoiceTotal();
-      
-      this.message = `${removedItem.name} removed from invoice`;
-      this.messageType = 'success';
-      
-      // Clear message after 3 seconds
-      setTimeout(() => {
-        this.message = '';
-      }, 3000);
-    }
-  }
-
-  clearInvoice() {
-    this.invoiceItems = [];
-    this.invoiceTotal = 0;
-    this.message = 'Invoice cleared';
-    this.messageType = 'success';
-    this.barcode = '';
-    this.qty = 1;
-    this.product = undefined;
-
-    // Clear message after 2 seconds
-    setTimeout(() => {
-      this.message = '';
-    }, 2000);
-  }
-
-  onBarcodeEnter() {
-    this.searchProduct();
-  
-    // Focus quantity input if product found
-    setTimeout(() => {
-      if (this.product) {
-        const qtyInput = document.getElementById('qty') as HTMLInputElement;
-        qtyInput?.focus();
-        qtyInput.select(); // auto-select current qty
-      }
-    }, 50);
-  }
-
-  onBarcodeTab(event: KeyboardEvent) {
-    if (event.key === 'Tab') {
-      // Only move if there are invoice items
-      if (this.invoiceItems.length > 0) {
-        event.preventDefault(); // prevent default tab behavior
-        const firstRow = document.querySelector(`[data-index="0"]`) as HTMLElement;
-        firstRow?.focus();
-      }
-    }
-  }
-  
-
-  onQtyEnter() {
-    this.addToInvoice();
-  
-    // Focus barcode input again for next product
-    setTimeout(() => {
-      const barcodeInput = document.getElementById('barcode') as HTMLInputElement;
-      barcodeInput?.focus();
-      barcodeInput.select();
-    }, 50);
-  }
-
-  onInvoiceRowKey(event: KeyboardEvent, index: number) {
-    switch(event.key) {
-      case 'Enter':
-        // Pressing Enter on any row generates the bill
-        this.generateBill();
-        // Focus barcode input after a short delay to ensure DOM updates
-        setTimeout(() => {
-          const barcodeInput = document.getElementById('barcode') as HTMLInputElement;
-          barcodeInput?.focus();
-          barcodeInput?.select(); // auto-select text for next scan
-        }, 50);
-        break;
-      case 'Delete':
-        // Delete the selected row
-        this.removeItem(index);
-        break;
-      case 'ArrowUp':
-        if (index > 0) {
-          const prevRow = document.querySelector(`[data-index="${index - 1}"]`) as HTMLElement;
-          prevRow?.focus();
-        }
-        break;
-      case 'ArrowDown':
-        if (index < this.invoiceItems.length - 1) {
-          const nextRow = document.querySelector(`[data-index="${index + 1}"]`) as HTMLElement;
-          nextRow?.focus();
-        }
-        break;
-    }
-  }
-  
-  
-  
-
-  @HostListener('window:keydown', ['$event'])
-  handleGlobalShortcuts(event: KeyboardEvent) {
-    if (event.ctrlKey && event.key === 'c') {
-      this.clearInvoice();
-      event.preventDefault();
-    } else if (event.ctrlKey && event.key === 'g') {
-      this.generateBill();
-      event.preventDefault();
-    }
-  }
-
-  
-  
 }
