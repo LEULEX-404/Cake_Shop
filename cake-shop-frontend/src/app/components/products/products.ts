@@ -3,6 +3,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { RouterLink } from "@angular/router";
 
 interface Product {
   id: number;
@@ -26,7 +27,7 @@ interface InvoiceItem {
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [FormsModule, HttpClientModule, CommonModule],
+  imports: [FormsModule, HttpClientModule, CommonModule, RouterLink],
   templateUrl: './products.html',
   styleUrls: ['./products.css']
 })
