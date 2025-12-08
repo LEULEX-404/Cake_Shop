@@ -1,1 +1,26 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Background With Blur + Dark Overlay */
+body {
+  margin: 10px;
+  font-family: 'Poppins', sans-serif;
+
+  /* Background image */
+  background: url('/back.jpg') no-repeat center center fixed;
+  background-size: cover;
+
+  /* Dark tinted overlay on top of image */
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  /* Blur + soft dark glass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  background: rgba(0, 0, 0, 0.45);
+
+  z-index: -1;
+}

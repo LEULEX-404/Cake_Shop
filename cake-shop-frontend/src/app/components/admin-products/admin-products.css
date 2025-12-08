@@ -1,14 +1,5 @@
 /* Product Management Dashboard Styles - Unique prefixed classes (pm-) */
 
-/* ========== WRAPPER ========== */
-.pm-wrapper {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f8fafc;
-  min-height: 100vh;
-  padding: 24px;
-  color: #0f172a;
-}
-
 /* ========== HEADER ========== */
 .pm-header {
   background: #ffffff;

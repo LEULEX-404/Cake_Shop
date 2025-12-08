@@ -1,5 +1,4 @@
 /* Modern Billing System Styles */
-
 * {
   margin: 0;
   padding: 0;
@@ -86,6 +85,29 @@ body {
   font-weight: 600;
   color: #2d3748;
 }
+
+.admin-link {
+  display: inline-block;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #4a90e2, #0077cc);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-link:hover {
+  background: linear-gradient(135deg, #5aa8ff, #0090ff);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.20);
+}
+
+.admin-link:active {
+  transform: scale(0.96);
+}
+
 
 /* Main Content Layout */
 .billing-content {
