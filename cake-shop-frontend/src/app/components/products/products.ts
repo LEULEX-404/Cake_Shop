@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { RouterLink } from "@angular/router";
+import { ViewChild, ElementRef } from '@angular/core';
+
+
 
 interface Product {
   id: number;
@@ -31,6 +34,12 @@ interface InvoiceItem {
   styleUrls: ['./products.css']
 })
 export class Products implements OnInit, OnDestroy {
+
+  @ViewChild('paymentTypeRef') paymentTypeRef!: ElementRef;
+  @ViewChild('paidAmountRef') paidAmountRef!: ElementRef;
+  @ViewChild('confirmBtnRef') confirmBtnRef!: ElementRef;
+
+
   barcode: string = '';
   qty: number = 1;
   product?: Product;
@@ -66,6 +75,7 @@ export class Products implements OnInit, OnDestroy {
     if (this.isBrowser) {
       this.updateDateTime();
       this.timeInterval = setInterval(() => this.updateDateTime(), 1000);
+      
     }
   }
 
@@ -78,6 +88,7 @@ export class Products implements OnInit, OnDestroy {
     const now = new Date();
     this.currentDate = now.toLocaleDateString();
     this.currentTime = now.toLocaleTimeString();
+    this.cdr.detectChanges();
   }
 
   loadAllProducts() {
@@ -115,6 +126,13 @@ export class Products implements OnInit, OnDestroy {
   openPaymentModal() {
     if(this.invoiceItems.length===0){ this.message='No items'; this.messageType='error'; return; }
     this.paymentType='cash'; this.paidAmount=null; this.paymentError=''; this.showPaymentModal=true;
+
+    /** 🔥 GUARANTEED FIX */
+  setTimeout(() => {
+    if (this.paymentTypeRef) {
+      this.paymentTypeRef.nativeElement.focus();
+    }
+  }, 150); // delay ensures modal fully appears
   }
 
   closePaymentModal() { this.showPaymentModal=false; this.paymentError=''; this.paidAmount=null; }
@@ -180,7 +198,49 @@ export class Products implements OnInit, OnDestroy {
 
   @HostListener('window:keydown',['$event'])
   handleGlobalShortcuts(e:KeyboardEvent){
-    if(e.ctrlKey&&e.key==='c'){ this.clearInvoice(); e.preventDefault(); }
-    else if(e.ctrlKey&&e.key==='g'){ this.openPaymentModal(); e.preventDefault(); }
+    if (e.ctrlKey && e.key === 'c') { 
+      this.clearInvoice(); 
+      e.preventDefault(); 
+    }
+    else if (e.ctrlKey && e.key === 'g') { 
+      this.openPaymentModal(); 
+      e.preventDefault(); 
+    }
+    else if (e.key === 'F1') { 
+      e.preventDefault();
+      window.location.href = '/admin/products';   // or: this.router.navigate(['/admin']);
+    }
   }
+
+
+  focusPaidAmount() {
+    setTimeout(() => {
+      this.paidAmountRef?.nativeElement.focus();
+    }, 50);
+  }
+  
+  focusConfirmButton() {
+    setTimeout(() => {
+      this.confirmBtnRef?.nativeElement.focus();
+    }, 50);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleModalKeys(event: KeyboardEvent) {
+  if (!this.showPaymentModal) return;
+
+  // ESC closes modal
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    this.closePaymentModal();
+  }
+
+  // ENTER on confirm button triggers confirmPayment
+  if (event.key === 'Enter' && document.activeElement === this.confirmBtnRef?.nativeElement) {
+    event.preventDefault();
+    this.confirmPayment();
+  }
+}
+
+  
 }
