@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CakeShopApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a4c614756a8314a6ce0c081e9935e7a55b2c358b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+19f8c249ee78c0c88a92d9564b337e76ccc1fa8d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CakeShopApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CakeShopApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

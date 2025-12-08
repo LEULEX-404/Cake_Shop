@@ -18,6 +18,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Register ProductService as scoped (so it uses DbContext properly)
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<InvoiceService>();
 
 // Enable CORS
 builder.Services.AddCors(options =>
