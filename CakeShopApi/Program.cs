@@ -33,6 +33,7 @@ builder.Services.AddCors(options =>
 // Build the app
 var app = builder.Build();
 
+
 // Use CORS
 app.UseCors();
 

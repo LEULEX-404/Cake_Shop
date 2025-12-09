@@ -242,3 +242,9 @@ C:\Users\e mart kahawatta\Desktop\Cake_Shop\CakeShopApi\obj\Debug\net10.0\refint
 C:\Users\e mart kahawatta\Desktop\Cake_Shop\CakeShopApi\obj\Debug\net10.0\CakeShopApi.pdb
 C:\Users\e mart kahawatta\Desktop\Cake_Shop\CakeShopApi\obj\Debug\net10.0\CakeShopApi.genruntimeconfig.cache
 C:\Users\e mart kahawatta\Desktop\Cake_Shop\CakeShopApi\obj\Debug\net10.0\ref\CakeShopApi.dll
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\web.config
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\appsettings.Development.json
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\appsettings.json
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\CakeShopApi.deps.json
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\CakeShopApi.runtimeconfig.json
+C:\Users\Windows 10\Desktop\Cake_Shop\CakeShopApi\bin\Debug\net10.0\publish\CakeShopApi.staticwebassets.endpoints.json
