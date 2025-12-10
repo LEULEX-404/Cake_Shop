@@ -1,267 +1,295 @@
-
-  <!-- Header Section -->
-  <div class="pm-header">
-    <div class="pm-header-content">
-      <h1 class="pm-title">
-        <span class="pm-title-icon">📦</span>
-        Product Management
-      </h1>
-      <p class="pm-subtitle">Manage your inventory and products</p>
+<div class="pos-container">
+  <!-- Header Section with Actions -->
+  <div class="pos-header">
+    <div class="pos-header-left">
+      <div class="pos-title-wrapper">
+        <i class="fas fa-boxes pos-title-icon"></i>
+        <div>
+          <h1 class="pos-title">Product Management</h1>
+          <p class="pos-subtitle">Manage inventory and stock</p>
+        </div>
+      </div>
     </div>
-    <div class="pm-header-actions">
-      <button class="pm-btn pm-btn-primary" (click)="openAddModal()">
-        <span class="pm-btn-icon">➕</span>
-        Add Product
+    
+    <div class="pos-header-right">
+      <button class="pos-btn pos-btn-primary" (click)="openAddModal()" title="Ctrl+A">
+        <i class="fas fa-plus"></i>
+        <span>Add Product</span>
+        <span class="pos-shortcut">Ctrl+A</span>
       </button>
-      <button class="pm-btn pm-btn-secondary" (click)="exportCSV()">
-        <span class="pm-btn-icon">📄</span>
-        Export CSV
+      
+      <button class="pos-btn pos-btn-export" (click)="exportCSV()" title="Ctrl+E">
+        <i class="fas fa-file-csv"></i>
+        <span>Export</span>
+        <span class="pos-shortcut">Ctrl+E</span>
       </button>
-      <a routerLink="" class="pm-btn pm-btn-info">
-        <span class="pm-btn-icon">🛒</span>
-        Go to Billing
-      </a>
+      
+      <button class="pos-btn pos-btn-reports" (click)="goToReports()" title="Ctrl+R">
+        <i class="fas fa-chart-line"></i>
+        <span>Reports</span>
+        <span class="pos-shortcut">Ctrl+R</span>
+      </button>
+      
+      <button class="pos-btn pos-btn-billing" (click)="goToBilling()" title="F1">
+        <i class="fas fa-cash-register"></i>
+        <span>Billing</span>
+        <span class="pos-shortcut">F2</span>
+      </button>
     </div>
   </div>
 
   <!-- Message Alert -->
-  <div class="pm-alert-container" *ngIf="message">
-    <div class="pm-alert" [class.pm-alert-success]="messageType==='success'" [class.pm-alert-error]="messageType==='error'">
-      <span class="pm-alert-icon">{{ messageType === 'success' ? '✓' : '⚠' }}</span>
-      <span class="pm-alert-text">{{ message }}</span>
-      <button class="pm-alert-close" (click)="message = ''">×</button>
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="pm-stats-grid">
-    <div class="pm-stat-card">
-      <div class="pm-stat-icon pm-stat-icon-primary">📊</div>
-      <div class="pm-stat-details">
-        <p class="pm-stat-label">Total Products</p>
-        <p class="pm-stat-value">{{ productList.length }}</p>
-      </div>
-    </div>
-    
-    <div class="pm-stat-card">
-      <div class="pm-stat-icon pm-stat-icon-success">💰</div>
-      <div class="pm-stat-details">
-        <p class="pm-stat-label">Stock Value</p>
-        <p class="pm-stat-value">{{ totalStockValue | number }} <span class="pm-currency">LKR</span></p>
-      </div>
-    </div>
-    
-    <div class="pm-stat-card">
-      <div class="pm-stat-icon pm-stat-icon-warning">📦</div>
-      <div class="pm-stat-details">
-        <p class="pm-stat-label">Low Stock Items</p>
-        <p class="pm-stat-value">{{ getLowStockCount() }}</p>
-      </div>
-    </div>
-    
-    <div class="pm-stat-card">
-      <div class="pm-stat-icon pm-stat-icon-info">🏷️</div>
-      <div class="pm-stat-details">
-        <p class="pm-stat-label">Product Types</p>
-        <p class="pm-stat-value">{{ getProductTypes() }}</p>
-      </div>
+  <div class="pos-alert-container" *ngIf="message">
+    <div class="pos-alert" [class.pos-alert-success]="messageType==='success'" [class.pos-alert-error]="messageType==='error'">
+      <i class="fas" [class.fa-check-circle]="messageType==='success'" [class.fa-exclamation-circle]="messageType==='error'"></i>
+      <span>{{ message }}</span>
+      <button class="pos-alert-close" (click)="message = ''">&times;</button>
     </div>
   </div>
 
   <!-- Search and Filter Section -->
-  <div class="pm-table-controls">
-    <div class="pm-search-box">
-      <span class="pm-search-icon">🔍</span>
-      <input type="text" class="pm-search-input" placeholder="Search products..." [(ngModel)]="searchTerm" (input)="filterProducts()">
+  <div class="pos-search-section">
+    <div class="pos-search-wrapper">
+      <i class="fas fa-search pos-search-icon"></i>
+      <input 
+        type="text" 
+        class="pos-search-input" 
+        placeholder="Search by name or barcode..." 
+        [(ngModel)]="searchTerm" 
+        (input)="filterProducts()"
+      >
     </div>
-    <div class="pm-filter-group">
-      <select class="pm-filter-select" [(ngModel)]="filterType" (change)="filterProducts()">
+    
+    <div class="pos-filter-group">
+      <select class="pos-filter-select" [(ngModel)]="filterType" (change)="filterProducts()">
         <option value="">All Types</option>
         <option value="fixed">Fixed Price</option>
         <option value="weight">Weight Based</option>
       </select>
-      <button class="pm-btn pm-btn-outline" (click)="resetFilters()">
-        <span class="pm-btn-icon">🔄</span>
+      
+      <button class="pos-btn pos-btn-reset" (click)="resetFilters()">
+        <i class="fas fa-redo"></i>
         Reset
       </button>
     </div>
   </div>
 
+  <!-- Stats Cards -->
+  <div class="pos-stats-grid">
+    <div class="pos-stat-card pos-stat-primary">
+      <div class="pos-stat-icon">
+        <i class="fas fa-box"></i>
+      </div>
+      <div class="pos-stat-content">
+        <div class="pos-stat-value">{{ productList.length }}</div>
+        <div class="pos-stat-label">Total Products</div>
+      </div>
+    </div>
+    
+    <div class="pos-stat-card pos-stat-success">
+      <div class="pos-stat-icon">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="pos-stat-content">
+        <div class="pos-stat-value">{{ totalStockValue | number:'1.0-0' }}</div>
+        <div class="pos-stat-label">Stock Value (LKR)</div>
+      </div>
+    </div>
+    
+    <div class="pos-stat-card pos-stat-warning">
+      <div class="pos-stat-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="pos-stat-content">
+        <div class="pos-stat-value">{{ getLowStockCount() }}</div>
+        <div class="pos-stat-label">Low Stock Items</div>
+      </div>
+    </div>
+    
+    <div class="pos-stat-card pos-stat-info">
+      <div class="pos-stat-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="pos-stat-content">
+        <div class="pos-stat-value">{{ getInStockCount() }}</div>
+        <div class="pos-stat-label">In Stock</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Products Table -->
-  <div class="pm-table-container">
-    <table class="pm-table">
-      <thead class="pm-table-head">
-        <tr>
-          <th class="pm-th">ID</th>
-          <th class="pm-th">Barcode</th>
-          <th class="pm-th">Name</th>
-          <th class="pm-th">Type</th>
-          <th class="pm-th">Price</th>
-          <th class="pm-th">Price/Kg</th>
-          <th class="pm-th">Stock Qty</th>
-          <th class="pm-th">Status</th>
-          <th class="pm-th">Actions</th>
-        </tr>
-      </thead>
-<tbody class="pm-table-body">
-  <tr *ngFor="let p of filteredProductList" class="pm-table-row">
-    <td>{{p.id}}</td>
-    <td>{{p.barcode}}</td>
-    <td>{{p.name}}</td>
-    <td>{{p.type}}</td>
-    <td>{{p.price ?? '-'}}</td>
-    <td>{{p.pricePerKg ?? '-'}}</td>
-    <td>{{p.stockQty}}</td>
-    <td>
-      <span [class.pm-stock-low]="p.stockQty<10"
-            [class.pm-stock-medium]="p.stockQty>=10 && p.stockQty<50"
-            [class.pm-stock-high]="p.stockQty>=50">
-        {{ getStockStatus(p.stockQty) }}
-      </span>
-    </td>
-    <td>
-      <button (click)="openEditModal(p)">Edit</button>
-      <button (click)="deleteProduct(p.id)">Delete</button>
-    </td>
-  </tr>
-</tbody>
-
-
-    </table>
+  <div class="pos-table-wrapper">
+    <div class="pos-table-header">
+      <h2 class="pos-table-title">
+        <i class="fas fa-list"></i>
+        Product List
+      </h2>
+      <span class="pos-table-count">{{ filteredProductList.length }} items</span>
+    </div>
+    
+    <div class="pos-table-container">
+      <table class="pos-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Barcode</th>
+            <th>Product Name</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th>Price/Kg</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredProductList" class="pos-table-row">
+            <td class="pos-cell-id">{{ p.id }}</td>
+            <td class="pos-cell-barcode">{{ p.barcode }}</td>
+            <td class="pos-cell-name">{{ p.name }}</td>
+            <td>
+              <span class="pos-badge" [class.pos-badge-fixed]="p.type==='fixed'" [class.pos-badge-weight]="p.type==='weight'">
+                <i class="fas" [class.fa-tag]="p.type==='fixed'" [class.fa-weight]="p.type==='weight'"></i>
+                {{ p.type === 'fixed' ? 'Fixed' : 'Weight' }}
+              </span>
+            </td>
+            <td class="pos-cell-price">{{ p.price ?? '-' }}</td>
+            <td class="pos-cell-price">{{ p.pricePerKg ?? '-' }}</td>
+            <td class="pos-cell-stock">{{ p.stockQty }}</td>
+            <td>
+              <span class="pos-stock-badge" 
+                    [class.pos-stock-low]="p.stockQty < 10"
+                    [class.pos-stock-medium]="p.stockQty >= 10 && p.stockQty < 50"
+                    [class.pos-stock-high]="p.stockQty >= 50">
+                <i class="fas fa-circle"></i>
+                {{ getStockStatus(p.stockQty) }}
+              </span>
+            </td>
+            <td class="pos-cell-actions">
+              <button class="pos-action-btn pos-btn-edit" (click)="openEditModal(p)" title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="pos-action-btn pos-btn-delete" (click)="deleteProduct(p.id)" title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredProductList.length === 0">
+            <td colspan="9" class="pos-no-data">
+              <i class="fas fa-inbox"></i>
+              <p>No products found</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Modal -->
-  <div class="pm-modal-overlay" *ngIf="showModal" (click)="closeModal()">
-    <div class="pm-modal" (click)="$event.stopPropagation()">
-      <div class="pm-modal-header">
-        <h2 class="pm-modal-title">{{ isEditMode ? '✏️ Edit Product' : '➕ Add Product' }}</h2>
-        <button class="pm-modal-close" (click)="closeModal()">×</button>
+  <div class="pos-modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="pos-modal" (click)="$event.stopPropagation()">
+      <div class="pos-modal-header">
+        <h2 class="pos-modal-title">
+          <i class="fas" [class.fa-edit]="isEditMode" [class.fa-plus]="!isEditMode"></i>
+          {{ isEditMode ? 'Edit Product' : 'Add Product' }}
+        </h2>
+        <button class="pos-modal-close" (click)="closeModal()">&times;</button>
       </div>
 
-      <div class="pm-modal-body">
-        <div class="pm-form-group">
-          <label class="pm-form-label">Barcode</label>
-          <input type="text" class="pm-form-input" [(ngModel)]="selectedProduct.barcode" placeholder="Enter barcode">
+      <div class="pos-modal-body">
+        <div class="pos-form-row">
+          <div class="pos-form-group">
+            <label class="pos-form-label">
+              <i class="fas fa-barcode"></i>
+              Barcode
+            </label>
+            <input 
+              type="text" 
+              class="pos-form-input" 
+              [(ngModel)]="selectedProduct.barcode" 
+              placeholder="Enter barcode"
+            >
+          </div>
+
+          <div class="pos-form-group">
+            <label class="pos-form-label">
+              <i class="fas fa-box"></i>
+              Product Name
+            </label>
+            <input 
+              type="text" 
+              class="pos-form-input" 
+              [(ngModel)]="selectedProduct.name" 
+              placeholder="Enter product name"
+            >
+          </div>
         </div>
 
-        <div class="pm-form-group">
-          <label class="pm-form-label">Product Name</label>
-          <input type="text" class="pm-form-input" [(ngModel)]="selectedProduct.name" placeholder="Enter product name">
-        </div>
-
-        <div class="pm-form-group">
-          <label class="pm-form-label">Product Type</label>
-          <select class="pm-form-select" [(ngModel)]="selectedProduct.type">
+        <div class="pos-form-group">
+          <label class="pos-form-label">
+            <i class="fas fa-tags"></i>
+            Product Type
+          </label>
+          <select class="pos-form-select" [(ngModel)]="selectedProduct.type">
             <option value="fixed">Fixed Price</option>
             <option value="weight">Weight Based</option>
           </select>
         </div>
 
-        <div class="pm-form-row">
-          <div class="pm-form-group">
-            <label class="pm-form-label">Price (LKR)</label>
-            <input type="number" class="pm-form-input" [(ngModel)]="selectedProduct.price" [disabled]="selectedProduct.type==='weight'" placeholder="0.00">
+        <div class="pos-form-row">
+          <div class="pos-form-group">
+            <label class="pos-form-label">
+              <i class="fas fa-money-bill"></i>
+              Price (LKR)
+            </label>
+            <input 
+              type="number" 
+              class="pos-form-input" 
+              [(ngModel)]="selectedProduct.price" 
+              [disabled]="selectedProduct.type==='weight'" 
+              placeholder="0.00"
+            >
           </div>
 
-          <div class="pm-form-group">
-            <label class="pm-form-label">Price per Kg (LKR)</label>
-            <input type="number" class="pm-form-input" [(ngModel)]="selectedProduct.pricePerKg" [disabled]="selectedProduct.type==='fixed'" placeholder="0.00">
+          <div class="pos-form-group">
+            <label class="pos-form-label">
+              <i class="fas fa-balance-scale"></i>
+              Price per Kg (LKR)
+            </label>
+            <input 
+              type="number" 
+              class="pos-form-input" 
+              [(ngModel)]="selectedProduct.pricePerKg" 
+              [disabled]="selectedProduct.type==='fixed'" 
+              placeholder="0.00"
+            >
           </div>
         </div>
 
-        <div class="pm-form-group">
-          <label class="pm-form-label">Stock Quantity</label>
-          <input type="number" class="pm-form-input" [(ngModel)]="selectedProduct.stockQty" placeholder="0">
+        <div class="pos-form-group">
+          <label class="pos-form-label">
+            <i class="fas fa-warehouse"></i>
+            Stock Quantity
+          </label>
+          <input 
+            type="number" 
+            class="pos-form-input" 
+            [(ngModel)]="selectedProduct.stockQty" 
+            placeholder="0"
+          >
         </div>
       </div>
 
-      <div class="pm-modal-footer">
-        <button class="pm-btn pm-btn-secondary" (click)="closeModal()">Cancel</button>
-        <button class="pm-btn pm-btn-primary" (click)="saveProduct()">
-          {{ isEditMode ? 'Update Product' : 'Add Product' }}
+      <div class="pos-modal-footer">
+        <button class="pos-btn pos-btn-secondary" (click)="closeModal()">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+        <button class="pos-btn pos-btn-primary" (click)="saveProduct()">
+          <i class="fas fa-save"></i>
+          {{ isEditMode ? 'Update' : 'Save' }}
         </button>
       </div>
     </div>
   </div>
-
-  <!-- Reports Section -->
-  <div class="pm-reports-section">
-    <div class="pm-section-header">
-      <h2 class="pm-section-title">
-        <span class="pm-title-icon">📈</span>
-        Reports & Analytics
-      </h2>
-      <button class="pm-btn pm-btn-outline">
-        <span class="pm-btn-icon">📊</span>
-        View All Reports
-      </button>
-    </div>
-
-    <div class="pm-reports-grid">
-      <div class="pm-report-card">
-        <div class="pm-report-header">
-          <h3 class="pm-report-title">Inventory Summary</h3>
-          <span class="pm-report-icon">📦</span>
-        </div>
-        <div class="pm-report-content">
-          <div class="pm-report-item">
-            <span class="pm-report-label">Total Items:</span>
-            <span class="pm-report-value">{{ productList.length }}</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">In Stock:</span>
-            <span class="pm-report-value">{{ getInStockCount() }}</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">Out of Stock:</span>
-            <span class="pm-report-value">{{ getOutOfStockCount() }}</span>
-          </div>
-        </div>
-        <button class="pm-report-btn">View Details →</button>
-      </div>
-
-      <div class="pm-report-card">
-        <div class="pm-report-header">
-          <h3 class="pm-report-title">Value Analysis</h3>
-          <span class="pm-report-icon">💵</span>
-        </div>
-        <div class="pm-report-content">
-          <div class="pm-report-item">
-            <span class="pm-report-label">Total Value:</span>
-            <span class="pm-report-value">{{ totalStockValue | number }} LKR</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">Avg. Price:</span>
-            <span class="pm-report-value">{{ getAveragePrice() | number }} LKR</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">Highest Value:</span>
-            <span class="pm-report-value">{{ getHighestValue() | number }} LKR</span>
-          </div>
-        </div>
-        <button class="pm-report-btn">View Details →</button>
-      </div>
-
-      <div class="pm-report-card">
-        <div class="pm-report-header">
-          <h3 class="pm-report-title">Product Distribution</h3>
-          <span class="pm-report-icon">🎯</span>
-        </div>
-        <div class="pm-report-content">
-          <div class="pm-report-item">
-            <span class="pm-report-label">Fixed Price:</span>
-            <span class="pm-report-value">{{ getFixedPriceCount() }}</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">Weight Based:</span>
-            <span class="pm-report-value">{{ getWeightBasedCount() }}</span>
-          </div>
-          <div class="pm-report-item">
-            <span class="pm-report-label">Categories:</span>
-            <span class="pm-report-value">2</span>
-          </div>
-        </div>
-        <button class="pm-report-btn">View Details →</button>
-      </div>
-    </div>
-  </div>
+</div>

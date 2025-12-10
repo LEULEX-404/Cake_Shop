@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Windows 10\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj": {}
+    "C:\\Users\\e mart kahawatta\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Windows 10\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj": {
+    "C:\\Users\\e mart kahawatta\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Windows 10\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj",
+        "projectUniqueName": "C:\\Users\\e mart kahawatta\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj",
         "projectName": "CakeShopApi",
-        "projectPath": "C:\\Users\\Windows 10\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj",
-        "packagesPath": "C:\\Users\\Windows 10\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Windows 10\\Desktop\\Cake_Shop\\CakeShopApi\\obj\\",
+        "projectPath": "C:\\Users\\e mart kahawatta\\Desktop\\Cake_Shop\\CakeShopApi\\CakeShopApi.csproj",
+        "packagesPath": "C:\\Users\\e mart kahawatta\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\e mart kahawatta\\Desktop\\Cake_Shop\\CakeShopApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Windows 10\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\e mart kahawatta\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
