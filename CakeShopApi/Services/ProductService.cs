@@ -27,12 +27,9 @@ namespace CakeShopApi.Services
 
         public async Task ReduceStockAsync(string barcode, decimal qty)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Barcode == barcode);
-            if (product == null)
-                throw new Exception("Product not found");
-
-            if (product.StockQty < qty)
-                throw new Exception("Not enough stock");
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Barcode == barcode) ?? throw new Exception("Product not found");
+            if (qty <= 0) throw new Exception("Quantity must be greater than zero");
+            if (qty > product.StockQty) throw new Exception("Insufficient stock");
 
             product.StockQty -= qty;
             await _context.SaveChangesAsync();

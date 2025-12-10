@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace CakeShopApi.Models
 {
     public class Invoice
@@ -16,14 +18,19 @@ namespace CakeShopApi.Models
 
         // Foreign Keys
         public int InvoiceId { get; set; }
-        public Invoice Invoice { get; set; } = null!;
+
+         [JsonIgnore]
+        public Invoice? Invoice { get; set; }
 
         public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
+        public Product? Product { get; set; }
 
-        // Item-specific fields
-        public decimal Quantity { get; set; }
-        public decimal UnitPrice { get; set; } // Price per unit or per kg
-        public decimal TotalPrice { get; set; }
+        // Item data
+        public string ProductName { get; set; } = string.Empty;
+        public decimal Qty { get; set; }
+        public decimal UnitPrice { get; set; }
+
+        // Automatically calculated line total
+        public decimal LineTotal => Qty * UnitPrice;
     }
 }

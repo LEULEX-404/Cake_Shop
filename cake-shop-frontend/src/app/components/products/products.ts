@@ -140,40 +140,118 @@ export class Products implements OnInit, OnDestroy {
   computeChange(): number { const paid=this.paidAmount??0; return Math.max(0, Math.round((paid-this.invoiceTotal)*100)/100); }
 
   async confirmPayment() {
-    this.paymentError='';
-    if(this.paidAmount===null||isNaN(this.paidAmount)) { this.paymentError='Enter valid paid amount'; return; }
-    if(this.paidAmount<this.invoiceTotal) { this.paymentError='Paid amount insufficient'; return; }
-    this.isProcessing=true;
-    try{
-      for(const item of this.invoiceItems)
-        await firstValueFrom(this.http.post('http://localhost:5277/api/product/reduce',{barcode:item.barcode,qty:item.qty},{responseType:'text'}));
-
-      this.invoiceNumber=this.generateInvoiceNumber();
-      const totalAmount=this.invoiceTotal;
-      const paid=this.paidAmount??totalAmount;
-      const change=Math.round((paid-totalAmount)*100)/100;
-      const invoiceData={ number:this.invoiceNumber, date:new Date().toLocaleString(), items:[...this.invoiceItems], total:totalAmount, paid, change, paymentType:this.paymentType };
-
-      this.invoiceItems=[]; this.invoiceTotal=0; this.barcode=''; this.qty=1; this.product=undefined;
-      this.showPaymentModal=false;
-      this.message=`Bill No: ${this.invoiceNumber} | Total: ${totalAmount} LKR | Change: ${change} LKR`; this.messageType='success';
+    this.paymentError = '';
+    if(this.paidAmount === null || isNaN(this.paidAmount)) {
+      this.paymentError = 'Enter valid paid amount';
+      return;
+    }
+    if(this.paidAmount < this.invoiceTotal) {
+      this.paymentError = 'Paid amount insufficient';
+      return;
+    }
+  
+    this.isProcessing = true;
+  
+    try {
+      // 1️⃣ Reduce stock for each invoice item
+      for(const item of this.invoiceItems) {
+        await firstValueFrom(this.http.post(
+          'http://localhost:5277/api/product/reduce',
+          { barcode: item.barcode, qty: item.qty },
+          { responseType: 'text' }
+        ));
+      }
+  
+      // 2️⃣ Build invoice payload matching backend C# model
+      const invoicePayload = {
+        date: new Date(),
+        totalAmount: this.invoiceTotal,
+        items: this.invoiceItems.map(i => {
+          const product = this.productList.find(p => p.barcode === i.barcode);
+          return {
+            productId: product?.id,      // backend expects ProductId
+            productName: i.name,         // backend expects ProductName
+            qty: i.qty,                  // Qty
+            unitPrice: i.price,           // UnitPrice
+            amount: i.amount
+          };
+        })
+      };
+  
+      // 3️⃣ Send invoice to backend
+      await firstValueFrom(this.http.post(
+        'http://localhost:5277/api/invoice/create',
+        invoicePayload
+      ));
+  
+      // 4️⃣ Print receipt
+      const paid = this.paidAmount ?? this.invoiceTotal;
+      const change = Math.round((paid - this.invoiceTotal) * 100) / 100;
+      this.printReceipt({ ...invoicePayload, paid, change });
+  
+      // 5️⃣ Reset frontend: modal close, invoice clear, focus back to barcode
+      this.clearInvoice();
+      this.showPaymentModal = false;
+      this.barcode = '';
+      this.qty = 1;
+      this.product = undefined;
+      this.message = `Bill No: ${this.generateInvoiceNumber()} | Total: ${this.invoiceTotal} LKR | Change: ${change} LKR`;
+      this.messageType = 'success';
       this.cdr.detectChanges();
-      setTimeout(()=>{ this.message=''; },4000);
-      this.printReceipt(invoiceData);
-    }catch(err){ console.error(err); this.paymentError='Payment error'; this.message='Payment error'; this.messageType='error'; this.cdr.detectChanges(); }
-    finally{ this.isProcessing=false; }
+  
+      setTimeout(() => {
+        this.message = '';
+        document.getElementById('barcode')?.focus(); // immediately focus for next sale
+      }, 4000);
+  
+    } catch(err) {
+      console.error(err);
+      this.paymentError = 'Payment error';
+      this.message = 'Payment error';
+      this.messageType = 'error';
+      this.cdr.detectChanges();
+    } finally {
+      this.isProcessing = false;
+    }
   }
-
-  printReceipt(invoiceData:any){
-    const header=`<div style="text-align:center;font-family:monospace;"><h2>Cake Shop</h2><div>${invoiceData.date}</div><hr/></div>`;
-    let itemsHtml='<table style="width:100%; font-family:monospace;"><tbody>';
-    invoiceData.items.forEach((it:any)=>itemsHtml+=`<tr><td>${it.name}</td><td>${it.qty}x${it.price}</td><td style="text-align:right">${it.amount.toFixed(2)}</td></tr>`);
-    itemsHtml+='</tbody></table>';
-    const totals=`<hr/><div>Total:${invoiceData.total.toFixed(2)} Paid:${invoiceData.paid.toFixed(2)} Change:${invoiceData.change.toFixed(2)}</div><hr/>`;
-    const printHtml=`<html><head><title>Receipt</title></head><body>${header}${itemsHtml}${totals}</body></html>`;
-    const w=window.open('','_blank','width=350,height=600'); if(!w){alert('Allow popups'); return;}
-    w.document.write(printHtml); w.document.close(); w.focus(); setTimeout(()=>w.print(),500);
+  
+  printReceipt(invoiceData: any) {
+    const header = `<div style="text-align:center;font-family:monospace;">
+                      <h2>Cake Shop</h2>
+                      <div>${invoiceData.date}</div><hr/>
+                    </div>`;
+  
+    let itemsHtml = '<table style="width:100%; font-family:monospace;"><tbody>';
+  
+    invoiceData.items.forEach((it: any) => {
+      const amount = it.amount ?? (it.qty * (it.unitPrice ?? it.price ?? 0)); // fallback
+      const price = it.price ?? it.unitPrice ?? 0;
+      itemsHtml += `<tr>
+                      <td>${it.name}</td>
+                      <td>${it.qty} x ${price.toFixed(2)}</td>
+                      <td style="text-align:right">${amount.toFixed(2)}</td>
+                    </tr>`;
+    });
+  
+    itemsHtml += '</tbody></table>';
+  
+    const total = invoiceData.totalAmount ?? 0;
+    const paid = invoiceData.paid ?? total;
+    const change = invoiceData.change ?? Math.max(0, paid - total);
+  
+    const totals = `<hr/>
+                    <div>Total: ${total.toFixed(2)} Paid: ${paid.toFixed(2)} Change: ${change.toFixed(2)}</div>
+                    <hr/>`;
+  
+    const printHtml = `<html><head><title>Receipt</title></head><body>${header}${itemsHtml}${totals}</body></html>`;
+    const w = window.open('', '_blank', 'width=350,height=600'); 
+    if (!w) { alert('Allow popups'); return; }
+    w.document.write(printHtml); 
+    w.document.close(); 
+    w.focus(); 
+    setTimeout(() => w.print(), 500);
   }
+  
 
   calculateTotalQty(): number { return this.invoiceItems.reduce((sum,i)=>sum+i.qty,0); }
   calculateInvoiceTotal() { this.invoiceTotal=this.invoiceItems.reduce((sum,i)=>sum+i.amount,0); }
